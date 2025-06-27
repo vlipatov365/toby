@@ -1,4 +1,14 @@
-FROM ubuntu:latest
-LABEL authors="iviac"
+FROM golang:1.22-alpine
 
-ENTRYPOINT ["top", "-b"]
+WORKDIR /app
+
+COPY go.mod ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o bot .
+
+ENV TELEGRAM_BOT_TOKEN=''
+
+CMD ["sh", "-c", "./bot"]
