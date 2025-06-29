@@ -55,6 +55,21 @@ func main() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
+	commands := []tgbotapi.BotCommand{
+		{
+			Command:     "model_list",
+			Description: "Выбери модель",
+		},
+	}
+
+	cfg := tgbotapi.NewSetMyCommands(commands...)
+	scope := tgbotapi.NewBotCommandScopeDefault()
+	cfg.Scope = &scope
+
+	if _, err := bot.Request(cfg); err != nil {
+		log.Fatalf("Request error: %v", err)
+	}
+
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
@@ -62,13 +77,15 @@ func main() {
 			continue
 		}
 
-		userInput := update.Message.Text
-		reply, err := queryOllama(userInput)
-		if err != nil {
-			reply = "Ошибка при обращении к Ollama: " + err.Error()
-		}
+		replyKeyboard := tgbotapi.NewReplyKeyboard(
+			tgbotapi.NewKeyboardButtonRow(
+				tgbotapi.NewKeyboardButton("Выбери модель"),
+				tgbotapi.NewKeyboardButton("Выбери персону"),
+			),
+		)
 
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, reply)
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите опцию ниже:")
+		msg.ReplyMarkup = replyKeyboard
 		bot.Send(msg)
 	}
 }
